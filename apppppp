@@ -1,0 +1,47 @@
+import os
+from dataclasses import dataclass, asdict
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from dotenv import load_dotenv
+
+load_dotenv()
+
+URI = os.getenv("URI") # URI:identificaor uniforme de recursos
+
+@dataclass #permite definir una clase sin necesidad de constructor
+class Person:
+    id: int
+    name: str
+    phone: str
+    
+    def save(self, coll): # obtiene la coleccion en mondogdb
+        return str(coll.insert_one(asdict(self)).inserted_id) #Convierte la instancia (objeto) de python en un diccionario (parecido a json) la inserta en la coll (coleccion de mongoDB) y retorna el id
+    
+def get_collection(uri, db="demo_db", col="persons"): #Para establecer la conexion como mongodb y recolectar la coleccion
+    client = MongoClient (
+        uri
+        , Server_api = ServerApi("1")
+        , tls = True #protocolo de seguridad
+        , tlsAllowInvalidCertificates = True #conectar sin validar certificados (no necesario)
+    )
+    
+    client.admin.command("ping") #se utiliza para verificar si la conexión sigue activa
+    
+    return client[db][col] #retorna la coleccion específica
+
+def main() : #definir que esto se ejecute primero
+    
+    uri = "mongodb+srv://villanuevaale830:villanueva23@cluster0.kjwrtwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    coll = get_collection(uri) #recolecta la coleccioh
+    
+    p = Person( 123, "Mayorga", "15062025") #instancia de objeto
+    id = p.save(coll) #guardar o enviar objeto a base datos en la coleccion y guarda el id de la base datos
+    
+    print(id) #imprime en pantalla el id de la instancia al guardar en la base datos
+    
+if __name__ == "__main__" : #ejecutar el main primero
+    main()
+
+    
+    
+    
